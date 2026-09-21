@@ -13,10 +13,12 @@ export default function Scene({
   reducedMotion,
   lowPower,
   active,
+  onReady,
 }: {
   reducedMotion: boolean;
   lowPower: boolean;
   active: boolean;
+  onReady?: () => void;
 }) {
   return (
     <Canvas
@@ -24,7 +26,10 @@ export default function Scene({
       dpr={lowPower ? [1, 1.5] : [1, 1.75]}
       camera={{ fov: 42, position: [0, 0.05, 4.4], near: 0.1, far: 40 }}
       gl={{ antialias: false, alpha: false }}
-      onCreated={({ gl }) => gl.setClearColor("#05070d", 1)}
+      onCreated={({ gl }) => {
+        gl.setClearColor("#05070d", 1);
+        onReady?.();
+      }}
     >
       <color attach="background" args={["#05070d"]} />
       <HeadRig reducedMotion={reducedMotion} lowPower={lowPower} />

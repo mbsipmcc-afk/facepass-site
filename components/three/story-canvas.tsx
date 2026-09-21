@@ -64,6 +64,7 @@ export function StoryCanvas() {
   const [tabVisible, setTabVisible] = useState(true);
   const [reduced, setReduced] = useState(false);
   const [low, setLow] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setWebgl(hasWebGL());
@@ -100,6 +101,24 @@ export function StoryCanvas() {
 
   const showCanvas = mounted && webgl;
 
+  // R3F creates its root only once react-use-measure reports a non-zero
+  // container size, and that size arrives via a ResizeObserver notification.
+  // When the page loads while the window is occluded or minimized, rendering
+  // steps are paused, the initial notification is lost, and the root never
+  // initializes - silently, with no error. Nudge the measurement with resize
+  // events (their handler path is synchronous) until onCreated confirms the
+  // root exists; capped so a hard WebGL failure cannot churn forever.
+  useEffect(() => {
+    if (!showCanvas || ready) return;
+    let kicks = 0;
+    const id = window.setInterval(() => {
+      kicks += 1;
+      window.dispatchEvent(new Event("resize"));
+      if (kicks >= 100) window.clearInterval(id);
+    }, 300);
+    return () => window.clearInterval(id);
+  }, [showCanvas, ready]);
+
   return (
     <div
       id="story-canvas"
@@ -108,7 +127,12 @@ export function StoryCanvas() {
     >
       {showCanvas ? (
         <SceneBoundary fallback={<FallbackScene />}>
-          <Scene reducedMotion={reduced} lowPower={low} active={inView && tabVisible} />
+          <Scene
+            reducedMotion={reduced}
+            lowPower={low}
+            active={inView && tabVisible}
+            onReady={() => setReady(true)}
+          />
         </SceneBoundary>
       ) : (
         <FallbackScene />
