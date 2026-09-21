@@ -152,7 +152,7 @@ export function Nav() {
           <div className="flex items-center gap-2">
             <Magnetic strength={0.25}>
               <a
-                href={`${BRAND.basePath}/coming-soon`}
+                href="/coming-soon"
                 className="btn-shine inline-flex items-center rounded-full bg-brand px-4.5 py-2 text-sm font-semibold text-ink shadow-[0_10px_28px_-12px_rgba(56,225,255,0.55)] transition hover:bg-brand-soft active:scale-[0.96]"
               >
                 Request a demo
@@ -215,7 +215,7 @@ export function Nav() {
               </motion.ul>
               <motion.div variants={menuItem} className="border-t border-fg/8 p-2 pt-3">
                 <a
-                  href={`${BRAND.basePath}/coming-soon`}
+                  href="/coming-soon"
                   onClick={() => {
                     lockScroll(false);
                     setOpen(false);

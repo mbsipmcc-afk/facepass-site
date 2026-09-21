@@ -7,7 +7,7 @@ const LINKS = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Security", href: "#security" },
   { label: "Dashboard", href: "#dashboard" },
-  { label: "Request a demo", href: `${BRAND.basePath}/coming-soon` },
+  { label: "Request a demo", href: "/coming-soon" },
 ];
 
 export function Footer() {

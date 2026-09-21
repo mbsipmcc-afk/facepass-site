@@ -201,7 +201,7 @@ export function Story() {
             <div className="hero-fade mt-9 flex flex-wrap items-center gap-4" data-motion="">
               <Magnetic>
                 <a
-                  href={`${BRAND.basePath}/coming-soon`}
+                  href="/coming-soon"
                   data-cursor-text="Demo"
                   className="btn-shine inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3.5 text-sm font-semibold text-ink shadow-[0_14px_44px_-14px_rgba(56,225,255,0.65)] transition hover:bg-brand-soft active:scale-[0.97]"
                 >

@@ -75,7 +75,7 @@ export function CTA() {
           >
             <Magnetic>
               <a
-                href={`${BRAND.basePath}/coming-soon`}
+                href="/coming-soon"
                 data-cursor-text="Say hi"
                 className="btn-shine inline-flex items-center gap-2 rounded-full bg-brand px-8 py-4 text-sm font-semibold text-ink shadow-[0_16px_48px_-14px_rgba(56,225,255,0.65)] transition hover:bg-brand-soft active:scale-[0.97]"
               >

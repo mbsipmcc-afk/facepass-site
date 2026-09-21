@@ -24,7 +24,7 @@ export default function ComingSoon() {
       </div>
 
       <div className="relative flex flex-col items-center">
-        <a href={`${BRAND.basePath}/`} className="rise-in flex items-center gap-2.5" aria-label={`${BRAND.name}, back to home`}>
+        <a href="/" className="rise-in flex items-center gap-2.5" aria-label={`${BRAND.name}, back to home`}>
           <LogoMark className="h-6 w-5" />
           <span className="font-display text-base font-semibold tracking-tight text-fg">{BRAND.name}</span>
         </a>
@@ -42,7 +42,7 @@ export default function ComingSoon() {
           dashboard. Check back soon.
         </p>
         <a
-          href={`${BRAND.basePath}/`}
+          href="/"
           className="rise-in btn-shine mt-9 inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3.5 text-sm font-semibold text-ink shadow-[0_14px_44px_-14px_rgba(56,225,255,0.65)] transition hover:bg-brand-soft active:scale-[0.97]"
           style={{ animationDelay: "0.3s" }}
         >

@@ -152,24 +152,18 @@ SYNTHETIC" on the site; all imagery is AI-generated — no real people or places
   (`lib/demo-data.ts`, visible "SYNTHETIC DEMO DATA" badge).
 - Footer carries the required disclaimer verbatim. No secrets or env files in the repo.
 
-## Deployment (GitHub Pages)
+## Deployment (Vercel)
 
-The site deploys automatically to GitHub Pages on every push to `main` via
-`.github/workflows/deploy-pages.yml` (static export under the `/facepass-site`
-sub-path).
+The site is linked to the GitHub repo in Vercel (project `facepass-site`,
+team `mbsipmcc-5235s-projects`): every push to `main` deploys to production
+automatically at https://facepass-site-mbsipmcc-5235s-projects.vercel.app and
+every pull request gets its own preview deployment.
 
-Two constants control every absolute URL the site emits and must stay in sync
-with `next.config.ts`:
-
-- `BRAND.siteUrl` in `lib/brand.ts`: the canonical production URL (used for
-  `metadataBase`, canonical, `og:url`, `og:image`, sitemap, robots, JSON-LD).
-- `BRAND.basePath` in `lib/brand.ts`: the serving sub-path (must equal
-  `basePath` in `next.config.ts`). Plain `<a>` hrefs are built from it because
-  Next only auto-prefixes its own router links.
-
-To move hosting (for example Cloudflare Pages on a custom domain): update
-`siteUrl`, remove `basePath`/`output`/`trailingSlash`/`images.unoptimized`
-from `next.config.ts`, drop `BRAND.basePath` usages, redeploy.
+One constant controls every absolute URL the site emits (metadataBase,
+canonical, `og:url`, `og:image`, sitemap, robots, JSON-LD): `BRAND.siteUrl`
+in `lib/brand.ts`. Keep it in sync with the production domain; when a custom
+domain is attached, change it there only. Next 16.3.5 note: `metadataBase`
+must be a bare origin (no sub-path), see the comment in `app/layout.tsx`.
 
 ## Social sharing + SEO
 
@@ -179,8 +173,7 @@ from `next.config.ts`, drop `BRAND.basePath` usages, redeploy.
 - `app/icon.png` and `app/apple-icon.png`: generated from the OG image
   (square crop centered on the head); `app/favicon.ico` is the legacy icon.
 - `app/sitemap.ts` and `app/robots.ts`: prerendered to `sitemap.xml` and
-  `robots.txt` at build time (they declare `export const dynamic =
-  "force-static"`, required by `output: export`).
+  `robots.txt` at build time.
 - JSON-LD `@graph` (Organization + WebSite + SoftwareApplication) lives in
   `app/layout.tsx`. `/coming-soon` is noindexed and excluded from the sitemap.
 - After changing the OG image, re-scrape once at

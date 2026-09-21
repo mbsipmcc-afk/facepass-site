@@ -1,16 +1,9 @@
 import type { NextConfig } from "next";
 
-// Hosted on GitHub Pages at the BRAND.siteUrl path (see lib/brand.ts):
-// static export under the /facepass-site basePath, trailing slash so every
-// route resolves to a directory index on Pages. If hosting moves to a root
-// domain (for example Cloudflare Pages with a custom domain), remove
-// output, basePath, trailingSlash and images.unoptimized, and update
-// BRAND.siteUrl.
-const nextConfig: NextConfig = {
-  output: "export",
-  basePath: "/facepass-site",
-  trailingSlash: true,
-  images: { unoptimized: true },
-};
+// Hosted on Vercel at the root domain (BRAND.siteUrl in lib/brand.ts), so
+// the framework defaults apply: no basePath, no static export, next/image
+// optimization on. If hosting ever moves to a sub-path host, add basePath
+// and see the Next 16 metadataBase note in app/layout.tsx.
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

@@ -68,14 +68,13 @@ const jsonLd = {
 };
 
 export const metadata: Metadata = {
-  // metadataBase must be origin-only: when it already carries the basePath,
-  // Next prefixes the basePath a second time onto metadata-file URLs like
-  // og:image, producing /facepass-site/facepass-site/... (verified on
-  // Next 16.3.5). Canonical/og:url therefore get the sub-path explicitly.
-  metadataBase: new URL(new URL(BRAND.siteUrl).origin),
+  // BRAND.siteUrl is a bare origin (no sub-path), so metadataBase can be it
+  // directly. (Do not put a sub-path in metadataBase: Next 16.3.5 then
+  // doubles the basePath on metadata-file URLs like og:image.)
+  metadataBase: new URL(BRAND.siteUrl),
   title: `${BRAND.name} | ${BRAND.tagline}`,
   description,
-  alternates: { canonical: "/facepass-site/" },
+  alternates: { canonical: "/" },
   keywords: [
     "facial recognition",
     "attendance",
@@ -87,7 +86,7 @@ export const metadata: Metadata = {
     // og:site_name carries the brand, so the card title stays just the promise.
     title: BRAND.tagline.replace(/\.$/, ""),
     description,
-    url: "/facepass-site/",
+    url: "/",
     type: "website",
     siteName: BRAND.name,
     locale: "en_US",
