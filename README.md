@@ -156,7 +156,7 @@ SYNTHETIC" on the site; all imagery is AI-generated — no real people or places
 
 The site is linked to the GitHub repo in Vercel (project `facepass-site`,
 team `mbsipmcc-5235s-projects`): every push to `main` deploys to production
-automatically at https://facepass-site-mbsipmcc-5235s-projects.vercel.app and
+automatically at https://facepass-site.vercel.app and
 every pull request gets its own preview deployment.
 
 One constant controls every absolute URL the site emits (metadataBase,

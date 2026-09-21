@@ -6,7 +6,7 @@ export const BRAND = {
   // absolute URL the site emits (canonical, og:url, og:image, sitemap, robots,
   // JSON-LD) is built from this. Currently the Vercel production domain; if
   // a custom domain is attached later, change it here only.
-  siteUrl: "https://facepass-site-mbsipmcc-5235s-projects.vercel.app",
+  siteUrl: "https://facepass-site.vercel.app",
   email: "hello@facepass.example",
   disclaimer:
     "FacePass is a real, deployed system. Figures shown are illustrative performance highlights; personal data is excluded.",
