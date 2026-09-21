@@ -1,8 +1,21 @@
 "use client";
 
-import { Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useEffect } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import { HeadRig } from "./head-rig";
+
+/* The story canvas parks on frameloop="never" while inactive. Re-arming an
+   R3F loop from "never" has historically been flaky across versions - the
+   flag flips but no frame is ever scheduled, leaving an initialized canvas
+   that renders only the clear color. One explicit invalidate on the wake-up
+   transition makes the resume deterministic. */
+function WakeOnActive({ active, reducedMotion }: { active: boolean; reducedMotion: boolean }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    if (active && !reducedMotion) invalidate();
+  }, [active, reducedMotion, invalidate]);
+  return null;
+}
 
 /**
  * Plain render path - no EffectComposer. Additive point sprites carry the glow
@@ -33,6 +46,7 @@ export default function Scene({
     >
       <color attach="background" args={["#05070d"]} />
       <HeadRig reducedMotion={reducedMotion} lowPower={lowPower} />
+      <WakeOnActive active={active} reducedMotion={reducedMotion} />
       <Suspense fallback={null} />
     </Canvas>
   );

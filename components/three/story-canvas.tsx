@@ -17,7 +17,10 @@ function hasWebGL(): boolean {
   }
 }
 
-class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean; message: string }> {
+class SceneBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { failed: boolean; message: string }
+> {
   state = { failed: false, message: "" };
   static getDerivedStateFromError(error: unknown) {
     return { failed: true, message: error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error) };
@@ -25,9 +28,11 @@ class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode
   componentDidCatch() {
     const w = window as unknown as { __sceneError?: string };
     w.__sceneError = this.state.message;
+    this.props.onError();
   }
+  // the ambience layer beneath the canvas takes over visually, so render nothing
   render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
+    return this.state.failed ? null : this.props.children;
   }
 }
 
@@ -65,6 +70,8 @@ export function StoryCanvas() {
   const [reduced, setReduced] = useState(false);
   const [low, setLow] = useState(false);
   const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
     setWebgl(hasWebGL());
@@ -72,6 +79,20 @@ export function StoryCanvas() {
     setLow(isLowPower());
     setMounted(true);
   }, []);
+
+  // QA/diagnosis marker: window.__sceneState explains which path rendered.
+  useEffect(() => {
+    const w = window as unknown as { __sceneState?: string };
+    w.__sceneState = !webgl
+      ? "no-webgl"
+      : failed
+        ? "scene-error"
+        : stuck
+          ? "root-stuck"
+          : ready
+            ? "ready"
+            : "initializing";
+  }, [webgl, failed, stuck, ready]);
 
   useEffect(() => {
     const story = document.getElementById("story");
@@ -105,18 +126,43 @@ export function StoryCanvas() {
   // container size, and that size arrives via a ResizeObserver notification.
   // When the page loads while the window is occluded or minimized, rendering
   // steps are paused, the initial notification is lost, and the root never
-  // initializes - silently, with no error. Nudge the measurement with resize
-  // events (their handler path is synchronous) until onCreated confirms the
-  // root exists; capped so a hard WebGL failure cannot churn forever.
+  // initializes - silently, with no error. Keep nudging the measurement with
+  // resize events (their handler path is synchronous) until onCreated confirms
+  // the root exists. No hard cap: one dispatched event per 300ms is negligible,
+  // the loop stops as soon as the root is ready, and a tab loaded while
+  // occluded for longer than any fixed cap would otherwise stay broken for
+  // good. While hidden nothing renders anyway, so skip and resume on visible.
   useEffect(() => {
     if (!showCanvas || ready) return;
-    let kicks = 0;
+    const kick = () => window.dispatchEvent(new Event("resize"));
+    kick();
     const id = window.setInterval(() => {
-      kicks += 1;
-      window.dispatchEvent(new Event("resize"));
-      if (kicks >= 100) window.clearInterval(id);
+      if (document.hidden) return;
+      kick();
     }, 300);
-    return () => window.clearInterval(id);
+    const onVisible = () => {
+      if (!document.hidden) kick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [showCanvas, ready]);
+
+  // If the root still hasn't come up after 15s of visible page life, say so:
+  // flag it (window.__sceneState "root-stuck" + console) instead of leaving a
+  // silently empty stage. The ambience layer beneath the canvas carries the
+  // visuals meanwhile, and the kicks keep trying.
+  useEffect(() => {
+    if (!showCanvas || ready) return;
+    const t = window.setTimeout(() => {
+      setStuck(true);
+      console.warn("[scene] WebGL root did not initialize after 15s; showing ambience fallback");
+    }, 15000);
+    return () => window.clearTimeout(t);
   }, [showCanvas, ready]);
 
   return (
@@ -125,8 +171,15 @@ export function StoryCanvas() {
       aria-hidden
       className="pointer-events-none fixed inset-0 z-0"
     >
-      {showCanvas ? (
-        <SceneBoundary fallback={<FallbackScene />}>
+      {/* CSS/SVG ambience lives beneath the WebGL canvas: covered by the
+          opaque canvas whenever the scene is live, and the only thing on
+          stage when WebGL is unavailable, the scene crashed, or the root
+          never initialized. No failure mode can leave a blank background. */}
+      <div className="absolute inset-0">
+        <FallbackScene />
+      </div>
+      {showCanvas && !failed ? (
+        <SceneBoundary onError={() => setFailed(true)}>
           <Scene
             reducedMotion={reduced}
             lowPower={low}
@@ -134,9 +187,7 @@ export function StoryCanvas() {
             onReady={() => setReady(true)}
           />
         </SceneBoundary>
-      ) : (
-        <FallbackScene />
-      )}
+      ) : null}
       {/* cinematic vignette (replaces the WebGL post-processing vignette) */}
       <div
         aria-hidden

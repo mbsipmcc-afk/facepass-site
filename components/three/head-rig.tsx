@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useMemo, useRef, use } from "react";
+import { Suspense, useMemo, useRef, use, useLayoutEffect } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { MESH_FRAGMENT, MESH_VERTEX } from "./head-shaders";
 import { GAUNTLET_LAYERS, STORY, portraitFactor, range01, storyState } from "./shared";
 
@@ -291,6 +291,14 @@ function SolidHead({ envRef, reducedMotion }: { envRef: React.RefObject<Env | un
   const buf = use(loadSolidHead());
   const solidRef = useRef<THREE.Mesh>(null);
   const ghostRef = useRef<THREE.Mesh>(null);
+  const invalidate = useThree((s) => s.invalidate);
+
+  // demand frameloop (reduced motion) renders only on invalidate, and the
+  // static face must appear the moment this suspended mesh commits - the
+  // pre-Suspense render painted nothing but the clear color
+  useLayoutEffect(() => {
+    invalidate();
+  }, [invalidate]);
 
   const { geo, solidMat, ghostMat } = useMemo(() => {
     const vCount = new DataView(buf).getUint32(0, true);
