@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>body{margin:0;background:#111} #info{color:#fff;font:12px monospace;position:fixed;top:8px;left:8px}</style>
+</head>
+<body>
+<div id="info">head-solid.bin — flat shading check — auto orbit</div>
+<script type="importmap">
+{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111111);
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.01, 100);
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const res = await fetch("/models/head-solid.bin");
+const buf = await res.arrayBuffer();
+const vCount = new DataView(buf).getUint32(0, true);
+const floats = new Float32Array(buf);
+const fpos = floats.subarray(1, 1 + vCount * 3);
+const fnor = floats.subarray(1 + vCount * 3, 1 + vCount * 6);
+const geo = new THREE.BufferGeometry();
+geo.setAttribute("position", new THREE.BufferAttribute(fpos.slice(), 3));
+geo.setAttribute("normal", new THREE.BufferAttribute(fnor.slice(), 3));
+geo.computeBoundingSphere();
+console.log("verts", vCount, "bsphere", geo.boundingSphere);
+
+const mat = new THREE.MeshStandardMaterial({ color: 0x9db8ff, roughness: 0.55, metalness: 0.05, side: THREE.FrontSide });
+scene.add(new THREE.Mesh(geo, mat));
+const key = new THREE.DirectionalLight(0xffffff, 2.2);
+key.position.set(2, 3, 6);
+scene.add(key);
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+camera.position.set(0.1, 0.15, 4.6);
+const controls = new OrbitControls(camera, renderer.domElement);
+window.__cam = camera;
+const loop = () => {
+  requestAnimationFrame(loop);
+  controls.update();
+  renderer.render(scene, camera);
+};
+loop();
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>body{margin:0;background:#000;overflow:hidden} #info{color:#fff;font:12px monospace;position:fixed;top:8px;left:8px;z-index:2}</style>
+</head>
+<body>
+<div id="info">head-points.bin — raw data check (no shaders)</div>
+<script type="importmap">
+{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.01, 100);
+camera.position.set(0, 0.2, 4.6);
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+
+const res = await fetch("/models/head-points.bin");
+const buf = new Float32Array(await res.arrayBuffer());
+const n = buf.length / 9;
+const pos = new Float32Array(n * 3);
+const col = new Float32Array(n * 3);
+const c1 = new THREE.Color("#38e1ff"), c2 = new THREE.Color("#ff4d6d");
+// color by the baked density channel: cyan = sparse, red = dense (the suspicious ones)
+for (let i = 0; i < n; i++) {
+  pos[i * 3] = buf[i * 9]; pos[i * 3 + 1] = buf[i * 9 + 1]; pos[i * 3 + 2] = buf[i * 9 + 2];
+  const c = c1.clone().lerp(c2, Math.min(1, buf[i * 9 + 8] * 1.6));
+  col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+}
+const g = new THREE.BufferGeometry();
+g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+const m = new THREE.PointsMaterial({ size: 0.014, vertexColors: true, transparent: true, opacity: 0.9 });
+scene.add(new THREE.Points(g, m));
+
+const loop = () => {
+  requestAnimationFrame(loop);
+  controls.update();
+  renderer.render(scene, camera);
+};
+loop();
+
+// slow auto-orbit so a static screenshot sees the side
+let a = 0;
+setInterval(() => {
+  a += 0.004;
+  camera.position.x = Math.sin(a) * 4.6;
+  camera.position.z = Math.cos(a) * 4.6;
+  camera.lookAt(0, 0, 0);
+}, 30);
+</script>
+</body>
+</html>
